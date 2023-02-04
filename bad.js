@@ -12,55 +12,67 @@
  * Write your perfect code!
  */
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react'
 
-function Card({title,text,target,linkTitle,href,rel,onClick,linkClassName})
-{
+function Card({ title, text, target, linkTitle, href, rel, linkClassName, onClick }) {
   return (
     <div className="card">
-
-        <div className="card__title">{title}</div>
-
-        <div className="card__text">{text}</div>
-        <a className={`default-link card__link ${linkClassName}`} target={target} rel={rel} href={href} onClick={onClick}>
-          {linkTitle}
-        </a>
+      <div className="card__title">{title}</div>
+      <div className="card__text">{text}</div>
+      <a
+        target={target}
+        href={href}
+        rel={rel}
+        onClick={onClick(href)}
+        className={`default--link card__link ${linkClassName}`}
+      >
+        {linkTitle}
+      </a>
     </div>
-  );
+  )
 }
 
-export default function Page () {
-  const [cards, setCards] = useState();
+export default function Page() {
+  const [cards, setCards] = useState([])
 
-  useEffect(async () => {
-    var data = await fetch('https://my-json-server.typicode.com/savayer/demo/posts');
-    let json = data.json();
+  const fetchCardsData = async () => {
+    const response = await fetch('https://my-json-server.typicode.com/savayer/demo/posts')
+    const data = await response.json()
 
-    let newData;
-    json.forEach((item) => {
-      newData.id = item.id;
-      newData.title = item.title;
-      newData.link_title = item.link_title;
-      newData.link = item.link;
-      newData.text = item.body.en.substr(0, 50) + '...';
-    });
+    const newData = data.map((item) => ({
+      id: item.id,
+      title: item.title.en,
+      text: `${item.body.en.substr(0, 50)}...`,
+      linkTitle: item.linkTitle,
+      link: item.link,
+      rel: item.rel,
+    }))
+    setCards(newData)
+  }
 
-    setCards(newData);
-  });
+  useEffect(() => {
+    fetchCardsData()
+  }, [])
 
-  function analyticsTrackClick(url) {
-    // sending clicked link url to analytics
-    console.log(url);
+  const analyticsTrackClick = (url) => {
+    console.log(url)
   }
 
   return (
     <div>
-    {cards.map(function (item) {
-      return (
-        <Card title={item.title.en} linkTitle={item.link_title} href={item.link} text={item.text} linkClassName={item.id == 1 ? 'card__link--red' : ''} target={item.id == 1 ? '_blank' : ''}
-          onClick={analyticsTrackClick(item.link)} />
-      );
-    })}
+      {cards.map((item) => (
+        <Card
+          key={item.id}
+          title={item.title}
+          text={item.text}
+          target={item.id === 1 ? '_blank' : ''}
+          linkTitle={item.linkTitle}
+          href={item.link}
+          rel={item.rel}
+          linkClassName={item.id === 1 ? 'card__link--red' : ''}
+          onClick={analyticsTrackClick}
+        />
+      ))}
     </div>
-  );
+  )
 }
